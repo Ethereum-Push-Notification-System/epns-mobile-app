@@ -26,22 +26,30 @@ import {
 
 import GLOBALS from '../../Globals';
 import Globals from '../../Globals';
-import {Dropdown} from '../dropdown';
+import {Dropdown, DropdownOption} from '../dropdown';
 import {ChannelCategories} from './ChannelCategories';
 
 const ChannelsDisplayer = () => {
+  // Get allowed chains
+  const chainList = ChainHelper.getSelectChains(ENV_CONFIG.ALLOWED_NETWORKS);
+
+  // State
   const [search, setSearch] = React.useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>(
     Globals.CONSTANTS.ALL_CATEGORIES,
   );
+  const [selectedChain, setSelectedChain] = useState<string>('');
 
+  // Redux
   const channelResults = useSelector(selectChannels);
+  const isLoadingSubscriptions = useSelector(selectIsLoadingSubscriptions);
+
+  // Hooks
   const {isLoading, isLoadingMore, resetChannelData, loadMore} = useChannels({
     tag: selectedCategory,
     searchQuery: search,
+    filter: selectedChain,
   });
-
-  const isLoadingSubscriptions = useSelector(selectIsLoadingSubscriptions);
   const {refreshSubscriptions} = useSubscriptions();
   const {userPushSDKInstance} = usePushApi();
   const {openSheet} = useSheets();
@@ -68,19 +76,13 @@ const ChannelsDisplayer = () => {
     }
     resetChannelData();
     setSelectedCategory(category as string);
+    setSelectedChain('');
   };
 
-  const getSelectChains = (chainIdList: Array<number>) => {
-    return chainIdList?.map((key: number) => {
-      return {
-        value: key.toString(),
-        label:
-          ChainHelper.networkName?.[
-            key as keyof typeof ChainHelper.networkName
-          ] ?? '',
-        icon: ChainHelper.chainIdToLogo(key),
-      };
-    });
+  const handleChainChange = (option: DropdownOption) => {
+    resetChannelData();
+    setSelectedCategory(Globals.CONSTANTS.ALL_CATEGORIES);
+    setSelectedChain(chainList[0].value !== option.value ? option.value : '');
   };
 
   return (
@@ -106,8 +108,10 @@ const ChannelsDisplayer = () => {
 
         {/* Render Dropdown Field */}
         <Dropdown
+          onChange={handleChainChange}
           style={styles.dropdownField}
-          data={getSelectChains(ENV_CONFIG.ALLOWED_NETWORKS)}
+          data={chainList}
+          value={selectedChain}
         />
       </View>
 
@@ -119,7 +123,7 @@ const ChannelsDisplayer = () => {
       />
 
       {/* Render No Data View */}
-      {channelResults.length === 0 && (
+      {channelResults?.length === 0 && (
         <View style={[styles.infodisplay]}>
           {!isLoading && !isLoadingSubscriptions ? (
             // Show channel not found label
@@ -147,7 +151,7 @@ const ChannelsDisplayer = () => {
       )}
 
       {/* Render Channel List */}
-      {channelResults.length !== 0 && !isLoadingSubscriptions && (
+      {channelResults?.length !== 0 && !isLoadingSubscriptions && (
         <FlatList
           data={channelResults}
           style={styles.channels}
@@ -223,7 +227,7 @@ const styles = StyleSheet.create({
     backgroundColor: GLOBALS.COLORS.BG_SEARCH_BAR,
     height: 48,
     paddingHorizontal: 12,
-    width: '70%',
+    width: '73%',
   },
   searchBar: {
     fontSize: 14,
@@ -244,8 +248,7 @@ const styles = StyleSheet.create({
   },
   footerLoadingView: {paddingVertical: 10},
   dropdownField: {
-    width: '25%',
-    height: 48,
+    width: '23%',
   },
 });
 

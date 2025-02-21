@@ -9,11 +9,12 @@ import {addChannels, resetChannels, setChannels} from 'src/redux/channelSlice';
 export type UseChannelsProps = {
   tag: string;
   searchQuery: string;
+  filter: string;
 };
 
 const DEBOUNCE_TIMEOUT = 500; //time in millisecond which we want to wait for then to finish typing
 
-const useChannels = ({tag, searchQuery}: UseChannelsProps) => {
+const useChannels = ({tag, searchQuery, filter}: UseChannelsProps) => {
   const [searchTimer, setSearchTimer] = useState<NodeJS.Timeout>();
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
@@ -25,9 +26,9 @@ const useChannels = ({tag, searchQuery}: UseChannelsProps) => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    console.log('first', {page, tag, searchQuery});
+    console.log('run side effect', {page, tag, searchQuery, filter});
     handleChannelInterval();
-  }, [page, tag, searchQuery]);
+  }, [page, tag, searchQuery, filter]);
 
   const handleChannelInterval = () => {
     if (searchTimer) {
@@ -41,15 +42,18 @@ const useChannels = ({tag, searchQuery}: UseChannelsProps) => {
   };
 
   const getChannelsData = () => {
-    console.log('second', {page, tag, searchQuery});
+    console.log('first run');
     if (searchQuery.trim().length) {
+      console.log('search');
       handleSearchAPI();
     } else {
+      console.log('normal');
       handleChannelAPI();
     }
   };
 
   const loadMore = () => {
+    console.log('load more');
     if (!isEndReached && !isLoading && !isLoadingMore) {
       setIsLoadingMore(true);
       setPage(page + 1);
@@ -66,7 +70,12 @@ const useChannels = ({tag, searchQuery}: UseChannelsProps) => {
       if (tag.length > 0 && tag !== Globals.CONSTANTS.ALL_CATEGORIES) {
         requestURL = `${requestURL}&tag=${tag}`;
       }
+      if (filter.length > 0) {
+        requestURL = `${requestURL}&filter=${filter}`;
+      }
+      console.log({requestURL});
       const resJson = await fetch(requestURL).then(response => response.json());
+      console.log({resJson});
       if (page > 1) {
         dispatch(addChannels(resJson.channels));
       } else {
@@ -93,6 +102,7 @@ const useChannels = ({tag, searchQuery}: UseChannelsProps) => {
         const results = await userPushSDKInstance?.channel.search(query, {
           page: page,
           limit: GLOBALS.CONSTANTS.FEED_ITEMS_TO_PULL,
+          filter: filter.length > 0 ? Number(filter) : undefined,
         });
         if (page > 1) {
           dispatch(addChannels(results));

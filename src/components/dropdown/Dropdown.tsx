@@ -1,7 +1,8 @@
-import React, {FC, useRef, useState} from 'react';
+import React, {FC, useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -12,12 +13,21 @@ import Globals from 'src/Globals';
 
 import {DropdownProps} from './Dropdown.types';
 
-const Dropdown: FC<DropdownProps> = ({style, data}) => {
+const Dropdown: FC<DropdownProps> = ({style, data, onChange, value}) => {
+  // State
   const [isVisible, setIsVisible] = useState(false);
   const [selectedOption, setSelectedOption] = useState(data[0]);
   const [dropdownTop, setDropdownTop] = useState(0);
   const buttonRef = useRef<TouchableOpacity>(null);
 
+  // Set default value
+  useEffect(() => {
+    if (value.length == 0) {
+      setSelectedOption(data[0]);
+    }
+  }, [value]);
+
+  // Open dropdown
   const openDropdown = () => {
     if (buttonRef.current) {
       buttonRef.current?.measure(
@@ -36,14 +46,17 @@ const Dropdown: FC<DropdownProps> = ({style, data}) => {
     setTimeout(() => setIsVisible(true), 100);
   };
 
+  // Handle option select
   const handleSelect = (option: any) => {
     setSelectedOption(option);
     setTimeout(() => setIsVisible(false), 100);
+    onChange(option);
   };
   return (
     <>
       {/* Dropdown Field */}
       <TouchableOpacity
+        activeOpacity={0.8}
         onPress={openDropdown}
         ref={buttonRef}
         style={[styles.mainView, style]}>
@@ -62,15 +75,14 @@ const Dropdown: FC<DropdownProps> = ({style, data}) => {
       {/* Dropdown Options */}
       <Modal
         backdropOpacity={0}
-        style={{margin: 0, paddingHorizontal: 16}}
+        style={styles.modalStyles}
         isVisible={isVisible}
-        animationIn="fadeInDownBig"
-        animationOut="fadeOutUpBig">
-        <TouchableOpacity
-          activeOpacity={1}
+        animationIn="fadeIn"
+        animationOut="fadeOut">
+        <Pressable
           style={styles.overlay}
           onPress={() => setTimeout(() => setIsVisible(false), 100)}>
-          <View style={[styles.dropdownContainer, {top: dropdownTop}]}>
+          <Pressable style={[styles.dropdownContainer, {top: dropdownTop}]}>
             <FlatList
               data={data}
               keyExtractor={item => item.value}
@@ -89,8 +101,8 @@ const Dropdown: FC<DropdownProps> = ({style, data}) => {
               )}
               ItemSeparatorComponent={() => <View style={styles.optionGap} />}
             />
-          </View>
-        </TouchableOpacity>
+          </Pressable>
+        </Pressable>
       </Modal>
     </>
   );
@@ -108,6 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     padding: 12,
     borderRadius: 12,
+    height: 48,
   },
   caretIcon: {
     height: 24,
@@ -116,6 +129,9 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
+    position: 'relative',
+    zIndex: 1,
+    paddingHorizontal: 16,
   },
   dropdownContainer: {
     backgroundColor: Globals.COLORS.WHITE,
@@ -123,7 +139,8 @@ const styles = StyleSheet.create({
     borderColor: Globals.COLORS.BORDER_DROPDOWN,
     padding: 8,
     borderRadius: 12,
-    maxHeight: 350,
+    maxHeight: 380,
+    zIndex: 2,
   },
   option: {
     flexDirection: 'row',
@@ -135,7 +152,7 @@ const styles = StyleSheet.create({
     backgroundColor: Globals.COLORS.PILL_BG_DEFAULT,
   },
   optionGap: {
-    height: 12,
+    marginTop: 12,
   },
   optionIcon: {
     height: 24,
@@ -145,4 +162,5 @@ const styles = StyleSheet.create({
   optionText: {
     marginLeft: 4,
   },
+  modalStyles: {margin: 0},
 });

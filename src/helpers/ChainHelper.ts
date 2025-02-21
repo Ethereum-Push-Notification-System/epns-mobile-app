@@ -1,4 +1,5 @@
 import {ImageSourcePropType} from 'react-native';
+import {DropdownOption} from 'src/components/dropdown';
 
 export type chainNameType =
   | 'ETH_TEST_SEPOLIA'
@@ -19,6 +20,10 @@ export type chainNameType =
   | 'FUSE_TESTNET'
   | 'CYBER_TESTNET'
   | 'CYBER_MAINNET'
+  | 'BASE_MAINNET'
+  | 'BASE_SEPOLIA'
+  | 'LINEA_MAINNET'
+  | 'LINEA_SEPOLIA'
   | 'FUSE_TESTNET'
   | undefined;
 
@@ -61,6 +66,14 @@ export const ChainHelper = {
         return 'CYBER_MAINNET';
       case 111557560:
         return 'CYBER_TESTNET';
+      case 8453:
+        return 'BASE_MAINNET';
+      case 84532:
+        return 'BASE_SEPOLIA';
+      case 59144:
+        return 'LINEA_MAINNET';
+      case 59141:
+        return 'LINEA_SEPOLIA';
       default:
         return undefined;
     }
@@ -94,9 +107,12 @@ export const ChainHelper = {
       case 'CYBER_MAINNET':
       case 'CYBER_TESTNET':
         return require('assets/ui/cyber.png');
-      case 'CYBER_MAINNET':
-      case 'CYBER_TESTNET':
+      case 'BASE_MAINNET':
+      case 'BASE_SEPOLIA':
         return require('assets/ui/base.png');
+      case 'LINEA_MAINNET':
+      case 'LINEA_SEPOLIA':
+        return require('assets/ui/linea.png');
 
       default:
         return null;
@@ -134,5 +150,18 @@ export const ChainHelper = {
     84532: 'Base Sepolia',
     59141: 'Linea Sepolia',
     59144: 'Linea Mainnet',
+  },
+
+  getSelectChains: (chainIdList: Array<number>): DropdownOption[] => {
+    return chainIdList?.map((key: number) => {
+      return {
+        value: key.toString(),
+        label:
+          ChainHelper.networkName?.[
+            key as keyof typeof ChainHelper.networkName
+          ] ?? '',
+        icon: ChainHelper.chainIdToLogo(key),
+      };
+    });
   },
 };
