@@ -2,6 +2,7 @@ import React, {FC, useEffect, useRef, useState} from 'react';
 import {
   FlatList,
   Image,
+  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -39,7 +40,9 @@ const Dropdown: FC<DropdownProps> = ({style, data, onChange, value}) => {
           _px: number,
           py: number,
         ) => {
-          setDropdownTop(py + height - 10);
+          const topOffset =
+            Platform.OS === 'ios' ? py + height + 15 : py + height - 10;
+          setDropdownTop(topOffset);
         },
       );
     }
