@@ -1,6 +1,5 @@
-import React, {FC, useState} from 'react';
+import React, {FC, useEffect, useRef} from 'react';
 import {ScrollView, StyleSheet, View} from 'react-native';
-import Globals from 'src/Globals';
 import {useChannelCategories} from 'src/hooks/channel/useChannelCategories';
 
 import {Pill} from '../pill';
@@ -16,12 +15,30 @@ const ChannelCategories: FC<ChannelCategoriesProps> = ({
   value,
   disabled,
 }) => {
+  // Ref
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  // Hooks
   const {isLoading, channelCategories} = useChannelCategories();
+
+  // Scroll to start
+  useEffect(() => {
+    if (!isLoading && channelCategories?.length > 0) {
+      const shouldScrollToStart = channelCategories[0].value === value;
+      if (shouldScrollToStart && scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({
+          x: 0,
+          animated: true,
+        });
+      }
+    }
+  }, [value]);
 
   if (!isLoading && channelCategories?.length > 0) {
     return (
       <View style={styles.mainView}>
         <ScrollView
+          ref={scrollViewRef}
           contentContainerStyle={styles.scrollViewStyle}
           showsHorizontalScrollIndicator={false}
           horizontal>

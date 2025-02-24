@@ -14,6 +14,8 @@ import EPNSActivity from 'src/components/loaders/EPNSActivity';
 import ChannelItem from 'src/components/ui/ChannelItem';
 import {usePushApi} from 'src/contexts/PushApiContext';
 import {useSheets} from 'src/contexts/SheetContext';
+import ENV_CONFIG from 'src/env.config';
+import {ChainHelper} from 'src/helpers/ChainHelper';
 import useChannels from 'src/hooks/channel/useChannels';
 import useSubscriptions from 'src/hooks/channel/useSubscriptions';
 import {
@@ -24,21 +26,30 @@ import {
 
 import GLOBALS from '../../Globals';
 import Globals from '../../Globals';
+import {Dropdown, DropdownOption} from '../dropdown';
 import {ChannelCategories} from './ChannelCategories';
 
 const ChannelsDisplayer = () => {
+  // Get allowed chains
+  const chainList = ChainHelper.getSelectChains(ENV_CONFIG.ALLOWED_NETWORKS);
+
+  // State
   const [search, setSearch] = React.useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>(
     Globals.CONSTANTS.ALL_CATEGORIES,
   );
+  const [selectedChain, setSelectedChain] = useState<string>('');
 
+  // Redux
   const channelResults = useSelector(selectChannels);
+  const isLoadingSubscriptions = useSelector(selectIsLoadingSubscriptions);
+
+  // Hooks
   const {isLoading, isLoadingMore, resetChannelData, loadMore} = useChannels({
     tag: selectedCategory,
     searchQuery: search,
+    filter: selectedChain,
   });
-
-  const isLoadingSubscriptions = useSelector(selectIsLoadingSubscriptions);
   const {refreshSubscriptions} = useSubscriptions();
   const {userPushSDKInstance} = usePushApi();
   const {openSheet} = useSheets();
@@ -65,12 +76,20 @@ const ChannelsDisplayer = () => {
     }
     resetChannelData();
     setSelectedCategory(category as string);
+    setSelectedChain('');
+  };
+
+  const handleChainChange = (option: DropdownOption) => {
+    resetChannelData();
+    setSelectedCategory(Globals.CONSTANTS.ALL_CATEGORIES);
+    setSelectedChain(chainList[0].value !== option.value ? option.value : '');
   };
 
   return (
     <View style={styles.container}>
       {/* Render Search Bar */}
       <View style={styles.searchBarWrapper}>
+        {/* Render Search Bar */}
         <View style={styles.searchView}>
           <Image
             source={require('assets/ui/search.png')}
@@ -82,10 +101,18 @@ const ChannelsDisplayer = () => {
               handleChannelSearch(e);
             }}
             value={search}
-            placeholder={'Search for channel name or address'}
+            placeholder={'Search for channel name...'}
             placeholderTextColor="#7D7F89"
           />
         </View>
+
+        {/* Render Dropdown Field */}
+        <Dropdown
+          onChange={handleChainChange}
+          style={styles.dropdownField}
+          data={chainList}
+          value={selectedChain}
+        />
       </View>
 
       {/* Render Channel Categories(tags) */}
@@ -96,7 +123,7 @@ const ChannelsDisplayer = () => {
       />
 
       {/* Render No Data View */}
-      {channelResults.length === 0 && (
+      {channelResults?.length === 0 && (
         <View style={[styles.infodisplay]}>
           {!isLoading && !isLoadingSubscriptions ? (
             // Show channel not found label
@@ -124,7 +151,7 @@ const ChannelsDisplayer = () => {
       )}
 
       {/* Render Channel List */}
-      {channelResults.length !== 0 && !isLoadingSubscriptions && (
+      {channelResults?.length !== 0 && !isLoadingSubscriptions && (
         <FlatList
           data={channelResults}
           style={styles.channels}
@@ -189,14 +216,18 @@ const styles = StyleSheet.create({
   searchBarWrapper: {
     paddingHorizontal: 16,
     marginBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   searchView: {
     flexDirection: 'row',
     alignItems: 'center',
     borderRadius: 16,
     backgroundColor: GLOBALS.COLORS.BG_SEARCH_BAR,
-    height: 42,
-    paddingHorizontal: 8,
+    height: 48,
+    paddingHorizontal: 12,
+    width: '73%',
   },
   searchBar: {
     fontSize: 14,
@@ -216,6 +247,9 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   footerLoadingView: {paddingVertical: 10},
+  dropdownField: {
+    width: '23%',
+  },
 });
 
 export default ChannelsDisplayer;

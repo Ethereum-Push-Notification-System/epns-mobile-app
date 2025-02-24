@@ -91,4 +91,33 @@ export default {
 
   // Contract Addresses
   CONTRACTS: IS_PROD_ENV ? {...PROD_CONTRACTS} : {...STAGING_CONTRACTS},
+
+  // Allowed networks
+  ALLOWED_NETWORKS: IS_PROD_ENV
+    ? [
+        1, //for ethereum mainnet
+        137, //for polygon mainnet
+        56, // for bnb mainnet
+        // 10, // for optimism mainnet
+        42161, // arbitrum mainnet
+        1101, // polygon zkevm mainnet
+        122, // fuse mainnet
+        7560, // Cyber mainnet
+        8453, //base mainnet
+        59144, // Linea mainnet
+      ]
+    : [
+        // 42, //for kovan
+        // 5, // for goerli
+        11155111, // for eth sepolia
+        80002, //for amoy polygon
+        97, // bnb testnet
+        11155420, // optimism sepolia testnet
+        2442, // polygon zkevm cardona testnet
+        421614, // arbitrum testnet
+        123, // fuse testnet
+        111557560, // Cyber testnet
+        84532, //base sepolia
+        59141, // Linea testnet
+      ],
 };

@@ -176,6 +176,7 @@ export default {
     // Border
     BORDER_DEFAULT: '#C4CBD5',
     BORDER_SEPARATOR: '#E5E5E5',
+    BORDER_DROPDOWN: '#EAEBF2',
   },
   SCREENS: {
     WELCOME: 'Welcome',
